@@ -3,8 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"net/http"
 
 	_ "github.com/lib/pq"
 )
@@ -17,14 +15,14 @@ func checkError(err error) {
 func main() {
 	fmt.Println("Hello Docker Tutorial")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from Docker")
-	})
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Fprintf(w, "Hello from Docker")
+	// })
 
-	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// fmt.Println("Listening on :8080")
+	// log.Fatal(http.ListenAndServe(":8080", nil))
 
-	connStr := "user=postgresUser password=123456 dbname=test sslmode=disable"
+	connStr := fmt.Sprintf("user=postgresUser password=123456 dbname=test sslmode=disable")
 
 	db, err := sql.Open("postgres", connStr)
 
@@ -33,7 +31,7 @@ func main() {
 	err = db.Ping()
 	checkError(err)
 	fmt.Println("Succesfully connected")
-
+	defer db.Close()
 	// Drop previous table of same name if one exists.
 	_, err = db.Exec("DROP TABLE IF EXISTS inventory;")
 	checkError(err)
