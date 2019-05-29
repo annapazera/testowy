@@ -15,7 +15,7 @@ services:
     build: .
     command: ["./wait-for-it.sh", "db:5432", "--","go", "run", "main.go"]
     volumes:
-      - .:/go/src
+      - .:/go/src/testowy
     # ports:
     #   - "8080:8080"
     depends_on:
