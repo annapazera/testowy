@@ -26,7 +26,7 @@ func main() {
 	fmt.Println("Succesfully connected")
 
 	// Drop previous table of same name if one exists.
-	_, err = db.Exec("DROP TABLE IF EXISTS inventory;")
+	_, err = db.Exec("DROP TABLE IF EXISTS products;")
 	checkError(err)
 	fmt.Println("Finished dropping table (if existed)")
 
