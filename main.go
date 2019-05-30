@@ -66,6 +66,7 @@ func main() {
 		default:
 			checkError(err)
 		}
+		fmt.Println(id, name, quantity)
 	}
 
 }
