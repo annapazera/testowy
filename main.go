@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -105,11 +104,4 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	_, err = query.Exec(product.Name, product.Quantity)
 
 	fmt.Fprintf(w, "New product was created")
-}
-
-func test1(w http.ResponseWriter, r *http.Request) {
-	// Handles about page.
-	// ... Get the path from the URL of the request.
-	path := html.EscapeString(r.URL.Path)
-	fmt.Fprintf(w, "Now you are on: %q", path)
 }
