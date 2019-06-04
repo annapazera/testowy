@@ -36,7 +36,6 @@ func main() {
 	checkError(err)
 	defer db.Close()
 	err = db.Ping()
-	checkError(err)
 	fmt.Println("Succesfully connected")
 
 	// Drop previous table of same name if one exists.
@@ -48,18 +47,22 @@ func main() {
 	_, err = db.Exec("CREATE TABLE products (id serial PRIMARY KEY, name VARCHAR(50), quantity INTEGER);")
 	checkError(err)
 	fmt.Println("Finished creating table")
-
 	fmt.Println("Inserting values")
-
+	sqlStatement := "INSERT INTO products (name, quantity) VALUES ($1,$2);"
+	_, err = db.Exec(sqlStatement, "banana", 150)
+	checkError(err)
+	_, err = db.Exec(sqlStatement, "orange", 154)
+	checkError(err)
+	_, err = db.Exec(sqlStatement, "apple", 100)
+	checkError(err)
 	router := mux.NewRouter()
-	router.HandleFunc("/products", getProducts).Methods("GET")
 	router.HandleFunc("/products", createProduct).Methods("POST")
+	router.HandleFunc("/products", getProducts).Methods("GET")
 
 	http.ListenAndServe(":8080", router)
 
 }
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 
 	var products []Product
 
@@ -82,7 +85,6 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(products)
 }
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 
 	var product Product
 	json.NewDecoder(r.Body).Decode(&product)
