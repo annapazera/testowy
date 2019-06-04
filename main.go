@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	_ "github.com/lib/pq"
 )
 
@@ -16,7 +18,7 @@ func checkError(err error) {
 	}
 }
 
-var db *sql.DB
+var database *sql.DB
 var err error
 
 //Product type
@@ -26,20 +28,24 @@ type Product struct {
 	Quantity int    `json:"quantity"`
 }
 
+func setDatabase(dba *sql.DB) {
+	database = dba
+}
+
 func main() {
 	fmt.Println("Hello Docker Tutorial")
 
 	connStr := fmt.Sprintf("host=db port=5432 user=postgresUser password=123456 dbname=test sslmode=disable")
 
 	db, err := sql.Open("postgres", connStr)
-
+	setDatabase(db)
 	checkError(err)
 	defer db.Close()
 	err = db.Ping()
 	fmt.Println("Succesfully connected")
 
 	// Drop previous table of same name if one exists.
-	_, err = db.Exec("DROP TABLE IF EXISTS products;")
+	_, err = database.Exec("DROP TABLE IF EXISTS products;")
 	checkError(err)
 	fmt.Println("Finished dropping table (if existed)")
 
@@ -55,18 +61,25 @@ func main() {
 	checkError(err)
 	_, err = db.Exec(sqlStatement, "apple", 100)
 	checkError(err)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/products", createProduct).Methods("POST")
 	router.HandleFunc("/products", getProducts).Methods("GET")
 
+	// http.HandleFunc("/products", createProduct)
+
+	// http.HandleFunc("/products", getProducts)
+	// http.HandleFunc("/about", test1)
+	// log.Fatal(http.ListenAndServe(":8080", nil))
 	http.ListenAndServe(":8080", router)
 
 }
 func getProducts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	var products []Product
 
-	result, err := db.Query("SELECT * from products")
+	result, err := database.Query("SELECT * from products")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -85,15 +98,23 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(products)
 }
 func createProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	var product Product
 	json.NewDecoder(r.Body).Decode(&product)
 
-	query, err := db.Prepare("INSERT INTO products(name,quantity) VALUES($1,$2)")
+	query, err := database.Prepare("INSERT INTO products(name,quantity) VALUES($1,$2)")
 	if err != nil {
 		panic(err.Error())
 	}
 	_, err = query.Exec(product.Name, product.Quantity)
 
 	fmt.Fprintf(w, "New product was created")
+}
+
+func test1(w http.ResponseWriter, r *http.Request) {
+	// Handles about page.
+	// ... Get the path from the URL of the request.
+	path := html.EscapeString(r.URL.Path)
+	fmt.Fprintf(w, "Now you are on: %q", path)
 }
