@@ -66,11 +66,6 @@ func main() {
 	router.HandleFunc("/products", createProduct).Methods("POST")
 	router.HandleFunc("/products", getProducts).Methods("GET")
 
-	// http.HandleFunc("/products", createProduct)
-
-	// http.HandleFunc("/products", getProducts)
-	// http.HandleFunc("/about", test1)
-	// log.Fatal(http.ListenAndServe(":8080", nil))
 	http.ListenAndServe(":8080", router)
 
 }
