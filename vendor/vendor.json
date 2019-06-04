@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "l/v4eZed+UIMXXCClOuBrLOhRJg=",
+			"origin": "vendor/github.com/gorilla/mux",
+			"path": "github.com/gorilla/mux",
+			"revision": ""
+		},
+		{
 			"checksumSHA1": "F6mCaMfANCOCP8pLnk94HmRyVpg=",
 			"path": "github.com/lib/pq",
 			"revision": "2ff3cb3adc01768e0a552b3a02575a6df38a9bea",

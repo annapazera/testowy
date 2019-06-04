@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
 
@@ -12,6 +15,17 @@ func checkError(err error) {
 		panic(err)
 	}
 }
+
+var db *sql.DB
+var err error
+
+//Product type
+type Product struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
+}
+
 func main() {
 	fmt.Println("Hello Docker Tutorial")
 
@@ -37,36 +51,47 @@ func main() {
 
 	fmt.Println("Inserting values")
 
-	// Insert some data into table.
-	sqlStatement := "INSERT INTO products (name, quantity) VALUES ($1, $2);"
-	_, err = db.Exec(sqlStatement, "banana", 150)
-	checkError(err)
-	_, err = db.Exec(sqlStatement, "orange", 154)
-	checkError(err)
-	_, err = db.Exec(sqlStatement, "apple", 100)
-	checkError(err)
-	fmt.Println("Inserted 3 rows of data")
+	router := mux.NewRouter()
+	router.HandleFunc("/products", getProducts).Methods("GET")
+	router.HandleFunc("/products", createProduct).Methods("POST")
 
-	// Read rows from table.
-	var id int
-	var name string
-	var quantity int
+	http.ListenAndServe(":8080", router)
 
-	sqlStatement = "SELECT * from products;"
-	rows, err := db.Query(sqlStatement)
-	checkError(err)
-	defer rows.Close()
+}
+func getProducts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-	for rows.Next() {
-		switch err := rows.Scan(&id, &name, &quantity); err {
-		case sql.ErrNoRows:
-			fmt.Println("No rows were returned")
-		case nil:
-			fmt.Printf("Data row = (%d, %s, %d)\n", id, name, quantity)
-		default:
-			checkError(err)
-		}
-		fmt.Println(id, name, quantity)
+	var products []Product
+
+	result, err := db.Query("SELECT * from products")
+	if err != nil {
+		panic(err.Error())
 	}
 
+	defer result.Close()
+
+	for result.Next() {
+		var product Product
+		err := result.Scan(&product.ID, &product.Name, &product.Quantity)
+		if err != nil {
+			panic(err.Error())
+		}
+		products = append(products, product)
+	}
+
+	json.NewEncoder(w).Encode(products)
+}
+func createProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var product Product
+	json.NewDecoder(r.Body).Decode(&product)
+
+	query, err := db.Prepare("INSERT INTO products(name,quantity) VALUES($1,$2)")
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = query.Exec(product.Name, product.Quantity)
+
+	fmt.Fprintf(w, "New product was created")
 }
